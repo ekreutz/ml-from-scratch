@@ -36,12 +36,19 @@ class Layer(object):
     def init(self):
         pass
     
+    # returns: output from this layer.
     def forward(self, x):
         pass
     
+    # grad_after: the gradient of the loss w.r.t to the output of this layer
+    # should return grad_prev: the gradient of the loss w.r.t the previous layer
+    # note: according to the chain rule grad_prev = grad_this * grad_after
+    # (this is also the place to calculate the gradients w.r.t different params)
     def backward(self, grad_after):
         pass
     
+    # using gradient descent, update params based on gradients that
+    # were calculated in backward()
     def update(self, alpha):
         pass
     
