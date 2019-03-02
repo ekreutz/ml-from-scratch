@@ -49,13 +49,17 @@ class Layer(object):
     
     # using gradient descent, update params based on gradients that
     # were calculated in backward()
-    def update(self, alpha):
+    def update(self, alpha, beta):
         pass
     
 class Linear(Layer):
     def __init__(self, n_input, n_output):
         self.w = rnd((n_output, n_input)) * 0.1
         self.b = rnd((n_output, 1)) * 0.1
+        
+        # "velocities" used for momentum!
+        self.vw = 0.0
+        self.vb = 0.0
     
     def forward(self, x):
         # x: (N_samples, n_input), w: (n_input, n_output)
@@ -69,9 +73,11 @@ class Linear(Layer):
         self.grad_b = np.mean(grad_after, axis=1, keepdims=True)
         return self.w.T @ grad_after
     
-    def update(self, alpha):
-        self.w -= alpha * self.grad_w
-        self.b -= alpha * self.grad_b
+    def update(self, alpha, beta):
+        self.vw = beta * self.vw + self.grad_w
+        self.vb = beta * self.vb * self.grad_b
+        self.w -= alpha * self.vw
+        self.b -= alpha * self.vb
     
     
 class Relu(Layer):
@@ -131,7 +137,7 @@ def full_forward(network, x):
 
 # x_train format: (n_samples, n_features)
 # y_train format: (n_samples,) <-- list of class indices
-def train(x_train, y_train, network, alpha, early_stop_acc=0.98):
+def train(x_train, y_train, network, alpha, beta = 0.0, early_stop_acc=0.98):
     # for training, we want y to be a one-hot vector of the shape
     # (n_classes, n_samples) <-- input into this method is (n_samples,)
     y_train = np.eye(n_classes)[y_train].T
@@ -154,7 +160,7 @@ def train(x_train, y_train, network, alpha, early_stop_acc=0.98):
         da = cross_entropy_grad(y_hat, y_train)
         for l in network[::-1]:
             da = l.backward(da)
-            l.update(alpha)
+            l.update(alpha, beta)
 ```
 
 ```{python}
@@ -167,7 +173,10 @@ _, n_features = X.shape
 
 sizes = [n_features, 30, 30, n_classes] # dense network sizes
 network = build_network(sizes)
-train(X, y, network, 0.01)
+
+alpha = 0.03
+beta = 0.9
+train(X, y, network, alpha, beta, 0.999)
 
 y_pred_p = full_forward(network, X)
 
