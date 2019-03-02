@@ -49,6 +49,7 @@ class Layer(object):
     
     # using gradient descent, update params based on gradients that
     # were calculated in backward()
+    # alpha = learning rate, beta = momentum
     def update(self, alpha, beta):
         pass
     
@@ -74,8 +75,8 @@ class Linear(Layer):
         return self.w.T @ grad_after
     
     def update(self, alpha, beta):
-        self.vw = beta * self.vw + self.grad_w
-        self.vb = beta * self.vb * self.grad_b
+        self.vw = beta * self.vw + (1-beta) * self.grad_w
+        self.vb = beta * self.vb + (1-beta) * self.grad_b
         self.w -= alpha * self.vw
         self.b -= alpha * self.vb
     
@@ -174,9 +175,9 @@ _, n_features = X.shape
 sizes = [n_features, 30, 30, n_classes] # dense network sizes
 network = build_network(sizes)
 
-alpha = 0.03
-beta = 0.9
-train(X, y, network, alpha, beta, 0.999)
+alpha = 0.05 # learning rate
+beta = 0.9 # momentum
+train(X, y, network, alpha, beta, 0.99)
 
 y_pred_p = full_forward(network, X)
 
